@@ -18,11 +18,15 @@ def filterList(l) : filter(lambda e: e[2] > sum(map(lambda x: x[2]/len(l), l)), 
 """
 Gets the weigted average of the position
 """
-def getAveragePosition(l) : (sum(map(lambda x: x[0]/len(l), l)), sum(map(lambda x: x[1]/len(l), l)))
+def getAveragePosition(l, a) : sum(map(lambda x: x[a]/len(l), l))
     
 """
 Get the 1d samplesize variance.
 """
-def calculateVariance(p) : 
+def calculateVariance(l, a) : np.var(map(lambda x: x[a], l))
 
-def getVarianceTuple(p) : 
+def getVarianceTuple(l) : (calculateVariance(l, 0), calculateVariance(l, 1))
+    
+def getPoints(p) : 
+    l = filterList(p)
+    (getAveragePosition(l, 0), getAveragePosition(l, 1), getVarianceTuple(l))
