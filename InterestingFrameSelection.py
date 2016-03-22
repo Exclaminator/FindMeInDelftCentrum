@@ -34,9 +34,9 @@ frames = []
 #Reading the frames and calculating the color histograms and temporal differences
 
 #Use the following line if you want to analyze the entire video, currently only the first 10% of the video is looked at
-#while(cap.isOpened() and cap.get(cv2.CAP_PROP_POS_MSEC) < q_total * 1000):
+while(cap.isOpened() and cap.get(cv2.CAP_PROP_POS_MSEC) < q_total * 1000):
 
-while(cap.isOpened() and cap.get(cv2.CAP_PROP_POS_MSEC) < q_total * 100):
+#while(cap.isOpened() and cap.get(cv2.CAP_PROP_POS_MSEC) < q_total * 100):
     ret, frame = cap.read()
     
     if frame == None:
@@ -57,6 +57,9 @@ interesting_frames = []
 
 #Integer that keeps track how much the frames have changed since the previous selected frame.
 difference = 0;
+max_frame_skipped = 0;
+frame_location = 0;
+frames_skipped = 0;
 
 #For each frame, determine if the frame is interesting enough to analyze. We will look at two features:
 #1. The color histogram should contain a variety of colours. Otherwise, you have a frame which doesn't
@@ -64,10 +67,30 @@ difference = 0;
 #2. The frame should differ enough from the previous selected frame.
 #The chosen values might need to be adjusted
 
-for i in range(frame_nbr - 1):
-    difference = difference + td_features[i]
-    if(np.max(ch_features[i]) < 0.6 and difference > 25000):
-        difference = 0;
-        interesting_frames.append(frames[i])
+print("Finished reading")
 
+for i in range(frame_nbr - 1):
+    frames_skipped = frames_skipped + 1;
+    difference = difference + td_features[i]
+    if(np.max(ch_features[i]) < 0.6 and difference > 2000000):
+        difference = 0;
+        interesting_frames.append(frames[i]);
+        if(frames_skipped > max_frame_skipped):
+            max_frame_skipped = frames_skipped
+            frame_location = i;
+        frames_skipped = 0;
+        #Use the following 2 lines to show the interesting frames
+        #cv2.imshow('Frame', frames[i])
+        #cv2.waitKey()
+
+print("Number of frames shown: ")
+print(len(interesting_frames))
+print("Number of total frames: ")
+print(len(frames))
+
+print("Max number of frames skipped:")
+print(max_frame_skipped)
+
+print("This happened before:")
+print(frame_location/ frame_rate)
 #interesting_frames contains a matrix of the interesting frames from your query video.
