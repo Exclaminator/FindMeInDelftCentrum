@@ -9,6 +9,8 @@ Created on Fri Mar 18 16:06:50 2016
 """
 import numpy as np
 
+ (lambda S (x) (S (- x 1))) => (let (fn (lambda (f) (lambda (x) (f (- x 1))))) (fn fn))  
+
 
 """
 This function calculates the mean of the probabilities and removes all items with a prob less than the mean.
