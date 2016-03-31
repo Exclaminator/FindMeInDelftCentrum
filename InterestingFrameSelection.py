@@ -4,6 +4,12 @@ import cv2
 from video_tools import *
 import feature_extraction as ft    
 from video_features import *
+import image_search
+import os.path
+import pickle
+import query
+from PIL import Image
+import re
 
 #Program to detect the interesting frams of a video. Takes as input a video-file
 #and returns an array of frames which contain interesting data to analyze.
@@ -34,6 +40,7 @@ frames = []
 #Reading the frames and calculating the color histograms and temporal differences
 
 #Use the following line if you want to analyze the entire video, currently only the first 10% of the video is looked at
+print("Start reading")
 while(cap.isOpened() and cap.get(cv2.CAP_PROP_POS_MSEC) < q_total * 1000):
 
 #while(cap.isOpened() and cap.get(cv2.CAP_PROP_POS_MSEC) < q_total * 100):
@@ -67,30 +74,61 @@ frames_skipped = 0;
 #2. The frame should differ enough from the previous selected frame.
 #The chosen values might need to be adjusted
 
-print("Finished reading")
+print("Finished reading")\
 
+total_td = sum(td_features)
+
+print("Start selecting interesting frames")
 for i in range(frame_nbr - 1):
     frames_skipped = frames_skipped + 1;
     difference = difference + td_features[i]
-    if(np.max(ch_features[i]) < 0.6 and difference > 2000000):
+    if(np.max(ch_features[i]) < 0.6 and difference > total_td / q_total):
         difference = 0;
         interesting_frames.append(frames[i]);
-        if(frames_skipped > max_frame_skipped):
-            max_frame_skipped = frames_skipped
-            frame_location = i;
-        frames_skipped = 0;
-        #Use the following 2 lines to show the interesting frames
-        #cv2.imshow('Frame', frames[i])
-        #cv2.waitKey()
+print("Finished selecting interesting frames")
 
-print("Number of frames shown: ")
-print(len(interesting_frames))
-print("Number of total frames: ")
-print(len(frames))
-
-print("Max number of frames skipped:")
-print(max_frame_skipped)
-
-print("This happened before:")
-print(frame_location/ frame_rate)
 #interesting_frames contains a matrix of the interesting frames from your query video.
+
+#Apply SIFT on all the selected frames
+print("Start the SIFT-process on the interesting frames")
+all_winners, all_distances = query.sifting("db/MMA.db" , interesting_frames)
+print("Finished the SIFT process")
+
+#Opening the database file per line
+gpsFile = open('positionDB.txt', 'r')
+gpsPerLine = gpsFile.readlines()
+
+gps_names = []
+
+#Splitting the words at each line
+for i in range(len(gpsPerLine)):
+    gps_names.append(gpsPerLine[i].split())
+
+#Finding the gps coordinates of a image-name in a gps-database.    
+def lookupGPS(gps, name):
+    for i in range(len(gps)):
+        if(gps[i][0] == name):
+            return float(gps[i][1]), float(gps[i][2])
+            
+    return 0, 0
+    
+GPS_Distances = []
+
+#Link the image names to gps coordinates and save them together with the distance    
+for i in range(len(all_winners)):
+    xCoord, yCoord = lookupGPS(gps_names, all_winners[i])
+    ar = [xCoord, yCoord, all_distances[i] ]
+    GPS_Distances.append(ar)
+
+GPS_Distances_per_frame = []
+
+#Grouping the found GPS data back into the frame they came from
+for i in range(len(interesting_frames)):
+    frame = []
+    for j in range(10):
+        frame.append(GPS_Distances[i*10 + j])
+    GPS_Distances_per_frame.append(frame)
+    
+#GPS_Distances_per_frame is an array, which contains an array for each frame in interesting_frames.
+#These arrays contain 10 arrays, which depict the 10 best matches with the SIFT database.
+#These arrays contain 3 numbers: the x-Coordinate and y-Coordinate of the GPS data and the distance of the SIFT-match. 
