@@ -9,16 +9,12 @@ import os.path
 import pickle
 import query
 from PIL import Image
+import gpsConversion as GC
 import re
 
 #Program to detect the interesting frams of a video. Takes as input a video-file
 #and returns an array of frames which contain interesting data to analyze.
 
-#Converting an array of 2 numbers to a GPS-Coordinate
-def numVToGps(n):
-    s = n[1]%60
-    m = ((n[1]-s)/60) + 21.0
-    return "52°0'"+str(n[0])+"\"N, 4°"+str(m)+"'"+str(s)+"\"E"
 
 #The argumentparser, which takes 1 argument: the path to the video-file you want to analyze
 parser = argparse.ArgumentParser(description="Video Query tool")
@@ -120,6 +116,11 @@ def lookupGPS(gps, name):
     
 GPS_Distances = []
 
+#for i in range(len(all_winners)):
+#    print all_winners[i]
+#    print all_distances[i]
+    
+
 #Link the image names to gps coordinates and save them together with the distance    
 for i in range(len(all_winners)):
     xCoord, yCoord = lookupGPS(gps_names, all_winners[i])
@@ -128,12 +129,20 @@ for i in range(len(all_winners)):
 
 GPS_Distances_per_frame = []
 
+xCoords = []
+yCoords = []
+
 #Grouping the found GPS data back into the frame they came from
 for i in range(len(interesting_frames)):
-    frame = []
-    for j in range(10):
-        frame.append(GPS_Distances[i*10 + j])
-    GPS_Distances_per_frame.append(frame)
+    #for j in range(10):
+    frame = GPS_Distances[i*10]
+    if (frame[2] < 80):
+        xCoords.append(frame[0])
+        yCoords.append(frame[1])
+
+gpscoord = GC.numVToGps([np.median(xCoords), np.median(yCoords) ])
+ 
+print gpscoord   
     
 #GPS_Distances_per_frame is an array, which contains an array for each frame in interesting_frames.
 #These arrays contain 10 arrays, which depict the 10 best matches with the SIFT database.

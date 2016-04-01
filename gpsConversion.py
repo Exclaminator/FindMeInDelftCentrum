@@ -23,4 +23,4 @@ def gpsEToNumV(l):
 def numVToGps(n):
     s = n[1]%60
     m = ((n[1]-s)/60) + 21.0
-    return "52 deg 0' "+str(n[0])+"\" N, 4 deg "+str(m)+"' "+str(s)+"\" E"
+    return "52°0'"+str(int(n[0]))+"\"N, 4°"+str(int(m))+"'"+str(int(s))+"\"E"
