@@ -14,6 +14,12 @@ import re
 #Program to detect the interesting frams of a video. Takes as input a video-file
 #and returns an array of frames which contain interesting data to analyze.
 
+#Converting an array of 2 numbers to a GPS-Coordinate
+def numVToGps(n):
+    s = n[1]%60
+    m = ((n[1]-s)/60) + 21.0
+    return "52°0'"+str(n[0])+"\"N, 4°"+str(m)+"'"+str(s)+"\"E"
+
 #The argumentparser, which takes 1 argument: the path to the video-file you want to analyze
 parser = argparse.ArgumentParser(description="Video Query tool")
 parser.add_argument("query", help="query video")

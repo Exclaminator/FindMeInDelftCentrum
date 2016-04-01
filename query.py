@@ -44,6 +44,9 @@ def sifting(database, im_list):
         result.save('out.jpg')
         query = 'out.jpg' 
         
+        cv2.imshow('Frame', im)
+        cv2.waitKey()
+        
         sift_query = ft.get_sift_features([query])[query]
         # Get a histogram of visual words for the query image
         image_words = sift_vocabulary.project(sift_query)
